@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function BookingForm() {
+export default function BookingForm({ onBookingCreated }) {
   const [fields, setFields] = useState([]);
   const [fieldId, setFieldId] = useState('');
   const [date, setDate] = useState('');
@@ -8,7 +8,7 @@ export default function BookingForm() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch fields from backend when component mounts
+  // Fetch available fields on mount
   useEffect(() => {
     fetch('http://localhost:3001/api/fields')
       .then((res) => {
@@ -17,7 +17,7 @@ export default function BookingForm() {
       })
       .then((data) => {
         setFields(data);
-        if (data.length > 0) setFieldId(data[0].id); // default to first field
+        if (data.length > 0) setFieldId(data[0].id);
         setLoading(false);
       })
       .catch((err) => {
@@ -42,15 +42,16 @@ export default function BookingForm() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        alert(`Booking successful! Your booking ID is ${data.bookingId}`);
+      if (res.status === 201) {
+        alert(`Booking successful! Booking ID: ${data.bookingId}`);
         setDate('');
         setTime('');
+        onBookingCreated(); // ✅ refresh booking list
       } else {
         alert(`Booking failed: ${data.error || 'Unknown error'}`);
       }
-    } catch (error) {
-      alert(`Error: ${error.message}`);
+    } catch (err) {
+      alert(`Error: ${err.message}`);
     }
   };
 
@@ -60,25 +61,38 @@ export default function BookingForm() {
   return (
     <form onSubmit={handleBooking}>
       <h2>Book a Field</h2>
+
       <label>
         Field:
         <select value={fieldId} onChange={(e) => setFieldId(e.target.value)}>
-          {fields.map(field => (
-            <option key={field.id} value={field.id}>{field.name}</option>
+          {fields.map((field) => (
+            <option key={field.id} value={field.id}>
+              {field.name}
+            </option>
           ))}
         </select>
       </label>
-      <br />
+
       <label>
         Date:
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+        />
       </label>
-      <br />
+
       <label>
         Time:
-        <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          required
+        />
       </label>
-      <br />
+
       <button type="submit">Book</button>
     </form>
   );
