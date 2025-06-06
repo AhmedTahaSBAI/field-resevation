@@ -6,12 +6,15 @@ import './App.css';
 function App() {
   const [bookings, setBookings] = useState([]);
 
-  const fetchBookings = () => {
-    fetch('http://localhost:3001/api/bookings')
-      .then(res => res.json())
-      .then(data => {
-        console.log(data)
-        setBookings(data)});
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/bookings');
+      if (!res.ok) throw new Error('Failed to fetch bookings');
+      const data = await res.json();
+      setBookings(data);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    }
   };
 
   useEffect(() => {
